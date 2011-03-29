@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 #
-# Google Reader unread count for Conky
+# Weather forecast for Conky
 #
-# Copyright (C) 2010 Xiaodong Xu <xxdlhy@gmail.com>
+# Copyright (C) 2011 Xiaodong Xu <xxdlhy@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,20 +18,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
-use strict;
-use warnings;
+use Modern::Perl;
+use HTTP::Tiny;
+use XML::Twig;
 
-use WebService::Google::Reader;
-
-my $user = '';
-my $pass = '';
-
-my $gr = WebService::Google::Reader->new(
-    username => $user,
-    password => $pass,
-    https    => 1,
+my $http = HTTP::Tiny->new(
+    agent => 'Mozilla/5.0 (X11; Linux i686)
+    AppleWebKit/534.24 (KHTML, like Gecko) Chrome/11.0.696.1 Safari/534.24',
 );
+my $url = 'http://www.google.com/ig/api?weather=Nanchong';
+my $xml = $http->get($url)->{content};
 
-my $counts = $gr->unread( count => 1000 )->entries || 0;
+my $twig = XML::Twig->new;
+$twig->parse($xml);
 
-print "$counts";
+my $condition = $twig->first_elt('condition')->att('data');
+my $temp      = $twig->first_elt('temp_c')->att('data');
+
+say "$temp° $condition";
